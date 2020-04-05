@@ -3,10 +3,10 @@ Resources:
         Type: AWS::EC2::Instance
         Properties:
             InstanceType: t2.micro
-            ImageId: ami-03ba3948f6c37a4b0
+            ImageId: ami-0d1cd67c26f5fca19
             KeyName: udacity-2
             SecurityGroups:
-                - !Ref AppNodeSG
+                - Ref: AppNodeSG
     AppNodeSG:
         Type: AWS::EC2::SecurityGroup
         Properties:
