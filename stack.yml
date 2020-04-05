@@ -1,12 +1,40 @@
+Parameters:
+    s3BucketUrl:
+        NoEcho: true
+        Type: String
+        Default: s3://udacity-demo-1/udacity.zip
+        Description: s3BucketUrl used to download zipped file from
+    InstanceTypeParameter:
+        Type: String
+        Default: t2.micro
+        AllowedValues:
+            - t2.micro
+            - t2.nano
+            - t2.medium
+        Description: Enter t2.micro, t2.nano, or t2.medium. Default is t2.micro
 Resources:
     AppNode:
         Type: AWS::EC2::Instance
         Properties:
-            InstanceType: t2.micro
+            InstanceType:
+                Ref: InstanceTypeParameter
             ImageId: ami-0d1cd67c26f5fca19
             KeyName: udacity-2
             SecurityGroups:
                 - Ref: AppNodeSG
+            UserData: 
+                Fn::Base64: 
+                    Fn::Sub:
+                    - |
+                        #!/bin/bash
+                        apt-get update -y
+                        apt-get install unzip awscli -y
+                        apt-get install apache2 -y
+                        systemctl start apache2.service
+                        cd /var/www/html
+                        aws s3 cp ${s3Bucket} .
+                        unzip -o udacity.zip
+                    -  s3Bucket: !Ref s3BucketUrl
     AppNodeSG:
         Type: AWS::EC2::SecurityGroup
         Properties:

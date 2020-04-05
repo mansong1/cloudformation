@@ -18,3 +18,5 @@ Resources:
           unzip -o udacity.zip
   Outputs: 
   #Bonus points for useful outputs!
+
+  t2.medium
