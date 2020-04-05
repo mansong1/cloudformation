@@ -115,7 +115,7 @@ Resources:
             Matcher: 
               Matcher
             Name: String
-            Port: 8080
+            Port: 80
             Protocol: HTTP
             Tags: 
                 - Key: Name 
@@ -148,3 +148,43 @@ Resources:
             Tags:
                 - Key: Name
                   Value: !Ref EnvironmentName
+    LBSecGroup:
+        Type: AWS::EC2::SecurityGroup
+        Properties:
+            GroupDescription: Allow http to our LoadBalancers
+            VpcId:
+                Fn::!ImportValue:
+                    !Sub "${EnvironmentName}-VPCID" 
+            SecurityGroupIngress:
+            - IpProtocol: tcp
+              FromPort: 80
+              ToPort: 80
+              CidrIp: 0.0.0.0/0
+            SecurityGroupEgress:
+            - IpProtocol: tcp
+              FromPort: 80
+              ToPort: 80
+              CidrIp: 0.0.0.0/0
+            Tags:
+                - Key: Name
+                  Value: !Ref EnvironmentName
+    Outputs:
+        StackName:
+            Description: 'Stack name.'
+            Value: !Sub '${AWS::StackName}'
+        DNSName:
+            Description: 'The DNS name for the ECS cluster/service load balancer.'
+            Value: !GetAtt 'WebAppLB.DNSName'
+            Export:
+              Name: !Sub '${AWS::StackName}-DNSName'
+        LoadBalancerUrl:
+            Description: The URL of the ALB
+            Value: !Sub 'http://${WebAppLB.DNSName}'
+            Export:
+                Name: !Sub '${AWS::StackName}-URL'
+        Listener:
+            Description: A reference to a port 80 Listener
+            Value: !Ref Listener
+        TemplateVersion:
+            Description: 'cloudonaut.io template version.'
+            Value: '__VERSION__'
