@@ -4,11 +4,11 @@ Parameters:
     MinAutoScalingGroupSize:
         Description: Minimum size for AutoScalingGroup. Default is 3
         Type: String
-        Default: '3'
+        Default: '2'
     MaxAutoScalingGroupSize:
         Description: Maximum size for AutoScalingGroup. Default is 3
         Type: String
-        Default: '5'
+        Default: '3'
     EnvironmentName:
         Description: An environment name that will be prefixed to resource names
         Type: String
@@ -32,7 +32,7 @@ Parameters:
         Description: Enter t2.micro, t2.nano, or t2.medium. Default is t2.micro
 Resources:
     WebAppLaunchConfig:
-        Type: AWS::AutoScaling::LaunchConfiguration
+        Type: AWS::AutoScaling::LaunchConfiguration 
         Properties:
             InstanceType:
                 Ref: InstanceTypeParameter
@@ -72,6 +72,58 @@ Resources:
             MaxSize: !Ref MaxAutoScalingGroupSize
             TargetGroupARNs:
             - Ref: WebAppTargetGoup
+    WebAppLB:
+        Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+        Properties:
+            Subnets:
+                - Fn::ImportValue: !Sub "${EnvironmentName}-PUB1-SN"
+                - Fn::ImportValue: !Sub "${EnvironmentName}-PUB2-SN"
+            SecurityGroups:
+                - Ref: LBSecGroup
+    Listener:
+        Type: AWS::ElasticLoadBalancingV2::Listener
+        Properties:
+            DefaultActions:
+            - Type: forward
+              TargetGroupArn:
+                Ref: WebAppTargetGoup
+            LoadBalancerArn:
+                Ref: WebAppLB
+            Port: '80'
+            Protocol: HTTP
+    ALBListenerRule:
+        Type: AWS::ElasticLoadBalancingV2::ListenerRule
+        Properties:
+            Actions:
+            - Type: forward
+              TargetGroupArn: !Ref 'WebAppTargetGoup'
+            Conditions:
+            - Field: path-pattern
+              Values: [/]
+            ListenerArn: !Ref 'Listener'
+            Priority: 1
+    WebAppTargetGoup:
+        Type: AWS::ElasticLoadBalancingV2::TargetGroup
+        Properties: 
+            HealthCheckEnabled: true
+            HealthCheckIntervalSeconds: 10
+            HealthCheckPath: /
+            HealthCheckPort: String
+            HealthCheckProtocol: HTTP
+            HealthCheckTimeoutSeconds: 8
+            HealthyThresholdCount: 2
+            Matcher: 
+              Matcher
+            Name: String
+            Port: 8080
+            Protocol: HTTP
+            Tags: 
+                - Key: Name 
+                  Value: !Ref EnvironmentName
+            UnhealthyThresholdCount: 5
+            VpcId:
+                Fn::ImportValue:
+                    Fn::Sub: "${EnvironmentName}-VPCID"
     WebServerSecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
