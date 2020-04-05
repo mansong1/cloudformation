@@ -5,6 +5,5 @@ DIR="$(PWD)"
 
 aws cloudformation create-stack
 --stack-name ${NAME}
-
 --template-body file://${DIR}/${FILE}
 --region=us-west-2
