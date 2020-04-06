@@ -188,7 +188,7 @@ Resources:
 Outputs:
     StacksRegion:
         Description: 'Region where stack is located'
-        value: !Ref "AWS::Region"
+        Value: !Ref "AWS::Region"
     StackName:
         Description: 'Stack name'
         Value: !Sub "AWS::StackName"
