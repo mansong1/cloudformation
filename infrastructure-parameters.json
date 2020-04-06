@@ -1,0 +1,50 @@
+[
+	{
+		"ParameterKey": "EnvironmentName",
+		"ParameterValue": "UdacityProject"
+	},
+	{
+		"ParameterKey": "KeyName",
+		"ParameterValue": "udacity-2"
+	},
+	{
+		"ParameterKey": "MinAutoScalingGroupSize",
+		"ParameterValue": "1"
+	},
+	{
+		"ParameterKey": "MaxAutoScalingGroupSize",
+		"ParameterValue": "2"
+	},
+	{
+		"ParameterKey": "S3BucketUrl",
+		"ParameterValue": "s3://udacity-demo-1/udacity.zip"
+	},
+	{
+		"ParameterKey": "EbsVolumeSize",
+		"ParameterValue": "10"
+	},
+	{
+		"ParameterKey": "InstanceTypeParameter",
+		"ParameterValue": "t2.micro"
+	},
+	{
+		"ParameterKey": "VpcCIDR",
+		"ParameterValue": "10.0.0.0/16"
+	},
+	{
+		"ParameterKey": "PublicSubnet1CIDR",
+		"ParameterValue": "10.0.0.0/24"
+	},
+	{
+		"ParameterKey": "PublicSubnet2CIDR",
+		"ParameterValue": "10.0.1.0/24"
+	},
+	{
+		"ParameterKey": "PrivateSubnet1CIDR",
+		"ParameterValue": "10.0.2.0/24"
+	},
+	{
+		"ParameterKey": "PrivateSubnet2CIDR",
+		"ParameterValue": "10.0.3.0/24"
+	}
+]

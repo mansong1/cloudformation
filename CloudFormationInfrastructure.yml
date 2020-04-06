@@ -7,67 +7,60 @@ Parameters:
     KeyName:
         Description: Keyname used to ssh into bastion host
         Type: AWS::EC2::KeyPair::Keyname
-        Default: udacity-2
     
     MinAutoScalingGroupSize:
-        Description: Minimum size for AutoScalingGroup. Default is 3
+        Description: Minimum size for AutoScalingGroup. Default is 1
         Type: String
-        Default: '1'
+        Default: 1
     
     MaxAutoScalingGroupSize:
-        Description: Maximum size for AutoScalingGroup. Default is 3
+        Description: Maximum size for AutoScalingGroup. Default is 2
         Type: String
-        Default: '2'
+        Default: 2
     
     EnvironmentName:
         Description: An environment name that will be prefixed to resource names
         Type: String
-        Default: UdacityProject
     
     S3BucketUrl:
         NoEcho: true
         Type: String
-        Default: s3://udacity-demo-1/udacity.zip
         Description: s3Bucket url used to download zipped file from
     
     EbsVolumeSize:
         Type: String
-        Default: '10'
         Description: Size of Ebs volume mount. Default is 10 (Gb)
+        Default: 10
     
     InstanceTypeParameter:
         Type: String
-        Default: t2.micro
         AllowedValues:
             - t2.micro
             - t2.nano
             - t2.medium
         Description: Enter t2.micro, t2.nano, or t2.medium. Default is t2.micro
+        Default: t2.micro
 
     VpcCIDR: 
         Description: Please enter the IP range (CIDR notation) for this VPC
         Type: String
-        Default: 10.0.0.0/16
 
     PublicSubnet1CIDR:
         Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
         Type: String
-        Default: 10.0.0.0/24
 
     PublicSubnet2CIDR:
         Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
         Type: String
-        Default: 10.0.1.0/24
 
     PrivateSubnet1CIDR:
         Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
         Type: String
-        Default: 10.0.2.0/24
 
     PrivateSubnet2CIDR:
         Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
         Type: String
-        Default: 10.0.3.0/24
+
 Mappings:
     RegionMap:
         us-east-1:
@@ -79,11 +72,168 @@ Mappings:
         us-west-2:
             AMI: ami-0d1cd67c26f5fca19
 Resources:
-    VPC:
+
+    VPC: 
         Type: AWS::EC2::VPC
         Properties:
-            CidrBlock: 10.0.0.0/16
+            CidrBlock: !Ref VpcCIDR
             EnableDnsHostnames: true
+            Tags: 
+                - Key: Name 
+                  Value: !Ref EnvironmentName
+            
+    InternetGateway:
+        Type: AWS::EC2::InternetGateway
+        Properties:
+            Tags:
+                - Key: Name
+                  Value: !Ref EnvironmentName
+            
+    InternetGatewayAttachment:
+        Type: AWS::EC2::VPCGatewayAttachment
+        Properties:
+            InternetGatewayId: !Ref InternetGateway
+            VpcId: !Ref VPC
+
+    PublicSubnet1: 
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            AvailabilityZone: !Select [ 0, !GetAZs '' ]
+            CidrBlock: !Ref PublicSubnet1CIDR
+            MapPublicIpOnLaunch: true
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+
+    PublicSubnet2: 
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            AvailabilityZone: !Select [ 1, !GetAZs '' ]
+            CidrBlock: !Ref PublicSubnet2CIDR
+            MapPublicIpOnLaunch: true
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Public Subnet (AZ2)
+
+    PrivateSubnet1: 
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            AvailabilityZone: !Select [ 0, !GetAZs '' ]
+            CidrBlock: !Ref PrivateSubnet1CIDR
+            MapPublicIpOnLaunch: false
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Private Subnet (AZ1)
+
+    PrivateSubnet2: 
+        Type: AWS::EC2::Subnet
+        Properties:
+            VpcId: !Ref VPC
+            AvailabilityZone: !Select [ 1, !GetAZs '' ]
+            CidrBlock: !Ref PrivateSubnet2CIDR
+            MapPublicIpOnLaunch: false
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Private Subnet (AZ2)
+
+    NatGateway1EIP:
+        Type: AWS::EC2::EIP
+        DependsOn: InternetGatewayAttachment
+        Properties: 
+            Domain: vpc
+
+    NatGateway2EIP:
+        Type: AWS::EC2::EIP
+        DependsOn: InternetGatewayAttachment
+        Properties:
+            Domain: vpc
+
+    NatGateway1: 
+        Type: AWS::EC2::NatGateway
+        Properties: 
+            AllocationId: !GetAtt NatGateway1EIP.AllocationId
+            SubnetId: !Ref PublicSubnet1
+
+    NatGateway2: 
+        Type: AWS::EC2::NatGateway
+        Properties:
+            AllocationId: !GetAtt NatGateway2EIP.AllocationId
+            SubnetId: !Ref PublicSubnet2
+
+    PublicRouteTable:
+        Type: AWS::EC2::RouteTable
+        Properties: 
+            VpcId: !Ref VPC
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Public Routes
+
+    DefaultPublicRoute: 
+        Type: AWS::EC2::Route
+        DependsOn: InternetGatewayAttachment
+        Properties: 
+            RouteTableId: !Ref PublicRouteTable
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: !Ref InternetGateway
+
+    PublicSubnet1RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            RouteTableId: !Ref PublicRouteTable
+            SubnetId: !Ref PublicSubnet1
+
+    PublicSubnet2RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            RouteTableId: !Ref PublicRouteTable
+            SubnetId: !Ref PublicSubnet2
+    
+
+    PrivateRouteTable1:
+        Type: AWS::EC2::RouteTable
+        Properties: 
+            VpcId: !Ref VPC
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Private Routes (AZ1)
+
+    DefaultPrivateRoute1:
+        Type: AWS::EC2::Route
+        Properties:
+            RouteTableId: !Ref PrivateRouteTable1
+            DestinationCidrBlock: 0.0.0.0/0
+            NatGatewayId: !Ref NatGateway1
+
+    PrivateSubnet1RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            RouteTableId: !Ref PrivateRouteTable1
+            SubnetId: !Ref PrivateSubnet1
+
+    PrivateRouteTable2:
+        Type: AWS::EC2::RouteTable
+        Properties: 
+            VpcId: !Ref VPC
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${EnvironmentName} Private Routes (AZ2)
+
+    DefaultPrivateRoute2:
+        Type: AWS::EC2::Route
+        Properties:
+            RouteTableId: !Ref PrivateRouteTable2
+            DestinationCidrBlock: 0.0.0.0/0
+            NatGatewayId: !Ref NatGateway2
+
+    PrivateSubnet2RouteTableAssociation:
+        Type: AWS::EC2::SubnetRouteTableAssociation
+        Properties:
+            RouteTableId: !Ref PrivateRouteTable2
+            SubnetId: !Ref PrivateSubnet2
+    
     WebAppLaunchConfig:
         Type: AWS::AutoScaling::LaunchConfiguration 
         Properties:
@@ -116,6 +266,7 @@ Resources:
             Tags:
                 - Key: Name 
                   Value: !Ref EnvironmentName
+
     WebAppGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
         Properties:
@@ -128,6 +279,7 @@ Resources:
             MaxSize: !Ref MaxAutoScalingGroupSize
             TargetGroupARNs:
             - Ref: WebAppTargetGoup
+
     WebAppLB:
         Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         Properties:
@@ -147,6 +299,7 @@ Resources:
                 Ref: WebAppLB
             Port: '80'
             Protocol: HTTP
+
     ALBListenerRule:
         Type: AWS::ElasticLoadBalancingV2::ListenerRule
         Properties:
@@ -158,6 +311,7 @@ Resources:
               Values: [/]
             ListenerArn: !Ref 'Listener'
             Priority: 1
+
     WebAppTargetGoup:
         Type: AWS::ElasticLoadBalancingV2::TargetGroup
         Properties: 
@@ -180,6 +334,7 @@ Resources:
             VpcId:
                 Fn::ImportValue:
                     Fn::Sub: "${EnvironmentName}-VPCID"
+
     WebServerSecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
@@ -204,6 +359,7 @@ Resources:
             Tags:
                 - Key: Name
                   Value: !Ref EnvironmentName
+
     LBSecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
@@ -224,36 +380,40 @@ Resources:
             Tags:
                 - Key: Name
                   Value: !Ref EnvironmentName
+
     ProfileWithRolesForOurApp:
         Type: AWS::IAM::InstanceProfile
         Properties:
             Path: "/"
             Roles: !Ref UdacityS3ReadOnlyEC2
+
     UdacityS3ReadOnlyPolicy:
         Type: AWS::IAM::Policy
         Properties:
-        PolicyName: ListS3BucketsPolicy
-        PolicyDocument:
-            Statement:
-            - Effect: Allow
-            Action:
-            - s3:List*
-            Resource: "*"
-        Roles:
-        - Ref: UdacityS3ReadOnlyEC2
+            PolicyName: ListS3BucketsPolicy
+            PolicyDocument:
+                Statement:
+                - Effect: Allow
+                Action:
+                - s3:List*
+                Resource: "*"
+            Roles:
+            - Ref: UdacityS3ReadOnlyEC2
+
     UdacityS3ReadOnlyEC2:
         Type: AWS::IAM::Role
         Properties:
-        AssumeRolePolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-            - Effect: Allow
-            Principal:
-                Service:
-                - ec2.amazonaws.com
-            Action:
-            - sts:AssumeRole
-        Path: /
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                - Effect: Allow
+                Principal:
+                    Service:
+                    - ec2.amazonaws.com
+                Action:
+                - sts:AssumeRole
+            Path: /
+
 Outputs:
     
     VPC: 
