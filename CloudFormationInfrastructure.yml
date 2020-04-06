@@ -379,16 +379,16 @@ Resources:
     UdacityS3ReadOnlyPolicy:
         Type: AWS::IAM::Policy
         Properties:
-            PolicyName: ListS3BucketsPolicy
+            PolicyName: UdacityS3ReadOnlyPolicy
             PolicyDocument:
+                Version: '2012-10-17'
                 Statement:
                 - Effect: Allow
-                Action:
-                - s3:ListBucket
-                - s3:GetObject
-                Resource: "*"
+                  Action:
+                  - s3:List*
+                  Resource: "*"
             Roles:
-            - Ref: UdacityS3ReadOnlyEC2
+            - !Ref UdacityS3ReadOnlyEC2
 
     UdacityS3ReadOnlyEC2:
         Type: AWS::IAM::Role
