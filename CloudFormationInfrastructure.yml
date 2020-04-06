@@ -263,9 +263,6 @@ Resources:
                         aws s3 cp ${s3Bucket} .
                         unzip -o udacity.zip
                     -  s3Bucket: !Ref S3BucketUrl
-            Tags:
-                - Key: Name 
-                  Value: !Ref EnvironmentName
 
     WebAppGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
