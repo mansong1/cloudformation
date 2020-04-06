@@ -214,7 +214,7 @@ Resources:
                 - ec2.amazonaws.com
             Action:
             - sts:AssumeRole
-        Path: "/"
+        Path: /
 Outputs:
     StacksRegion:
         Description: 'Region where stack is located'
