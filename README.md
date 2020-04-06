@@ -7,3 +7,6 @@
 e.g.
 
 `./create-stack.sh udacitystack stack.yml us-west-2`
+
+
+**N.B.** AMIs are Ubuntu 18.04 LTS
