@@ -1,6 +1,7 @@
 Description: >
     Martin Ansong / Udacity 2020
-    This template 
+    This template creates and deploys the infrastructure and application for an Instagram-like 
+    application from the ground up in a highly available configuration
 Parameters:
     
     KeyName:
