@@ -8,11 +8,11 @@ Parameters:
     MinAutoScalingGroupSize:
         Description: Minimum size for AutoScalingGroup. Default is 3
         Type: String
-        Default: '2'
+        Default: '1'
     MaxAutoScalingGroupSize:
         Description: Maximum size for AutoScalingGroup. Default is 3
         Type: String
-        Default: '3'
+        Default: '2'
     EnvironmentName:
         Description: An environment name that will be prefixed to resource names
         Type: String
