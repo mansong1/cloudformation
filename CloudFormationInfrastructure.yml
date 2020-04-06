@@ -5,8 +5,8 @@ Description: >
 Parameters:
     
     KeyName:
-        Description: Keyname used to ssh into bastion host
-        Type: AWS::EC2::KeyPair::Keyname
+        Description: Keyname used to ssh
+        Type: AWS::EC2::KeyPair::KeyName
     
     MinAutoScalingGroupSize:
         Description: Minimum size for AutoScalingGroup. Default is 1
@@ -270,9 +270,7 @@ Resources:
     WebAppGroup:
         Type: AWS::AutoScaling::AutoScalingGroup
         Properties:
-            VPCZoneIdentifier:
-            - Fn::ImportValue:
-                !Sub "${EnvironmentName}-PRIV-NETS"
+            VPCZoneIdentifier: [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]
             LaunchConfigurationName:
                 Ref: WebAppLaunchConfig
             MinSize: !Ref MinAutoScalingGroupSize
@@ -284,8 +282,8 @@ Resources:
         Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         Properties:
             Subnets:
-                - Fn::ImportValue: !Sub PrivateSubnet1
-                - Fn::ImportValue: !Sub PrivateSubnet2
+                - !Sub PublicSubnet1
+                - !Sub PublicSubnet2
             SecurityGroups:
                 - Ref: LBSecGroup
     Listener:
@@ -331,17 +329,13 @@ Resources:
                 - Key: Name 
                   Value: !Ref EnvironmentName
             UnhealthyThresholdCount: 5
-            VpcId:
-                Fn::ImportValue:
-                    Fn::Sub: "${EnvironmentName}-VPCID"
+            VpcId: !Ref VPC
 
     WebServerSecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
             GroupDescription: Allow http to our hosts and SSH from local only
-            VpcId:
-                Fn::ImportValue:
-                    !Sub "${EnvironmentName}-VPCID" 
+            VpcId: !Ref VPC
             SecurityGroupIngress:
             - IpProtocol: tcp
               FromPort: 80
@@ -364,9 +358,7 @@ Resources:
         Type: AWS::EC2::SecurityGroup
         Properties:
             GroupDescription: Allow http to our LoadBalancers
-            VpcId:
-                Fn::ImportValue:
-                    !Sub "${EnvironmentName}-VPCID" 
+            VpcId: !Ref VPC
             SecurityGroupIngress:
             - IpProtocol: tcp
               FromPort: 80
@@ -385,7 +377,8 @@ Resources:
         Type: AWS::IAM::InstanceProfile
         Properties:
             Path: "/"
-            Roles: !Ref UdacityS3ReadOnlyEC2
+            Roles: 
+                - !Ref UdacityS3ReadOnlyEC2
 
     UdacityS3ReadOnlyPolicy:
         Type: AWS::IAM::Policy
@@ -407,12 +400,12 @@ Resources:
                 Version: '2012-10-17'
                 Statement:
                 - Effect: Allow
-                Principal:
+                  Principal:
                     Service:
                     - ec2.amazonaws.com
-                Action:
-                - sts:AssumeRole
-            Path: /
+                  Action:
+                  - sts:AssumeRole
+            Path: "/"
 
 Outputs:
     
