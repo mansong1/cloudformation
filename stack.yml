@@ -30,13 +30,23 @@ Parameters:
             - t2.nano
             - t2.medium
         Description: Enter t2.micro, t2.nano, or t2.medium. Default is t2.micro
+Mappings:
+    RegionMap:
+        us-east-1:
+            AMI: ami-07ebfd5b3428b6f4d
+        us-east-2:
+            AMI: ami-0fc20dd1da406780b
+        us-west-1:
+            AMI: ami-03ba3948f6c37a4b0
+        us-west-2:
+            AMI: ami-0d1cd67c26f5fca19
 Resources:
     WebAppLaunchConfig:
         Type: AWS::AutoScaling::LaunchConfiguration 
         Properties:
             InstanceType:
                 Ref: InstanceTypeParameter
-            ImageId: ami-0d1cd67c26f5fca19
+            ImageId: !FindInMap
             KeyName: udacity-2
             SecurityGroups:
                 - Ref: WebServerSecGroup
@@ -169,11 +179,12 @@ Resources:
                 - Key: Name
                   Value: !Ref EnvironmentName
     Outputs:
+        StacksRegion:
+            Description: 'Region where stack is located'
+            value: !Ref "AWS::Region"
         StackName:
             Description: 'Stack name'
-            Value: !Ref MyStack
-            Export:
-                Name: !Sub "${AWS::StackName}"
+            Value: !Sub "${AWS::StackName}"
         DNSName:
             Description: 'The DNS name for the ECS cluster/service load balancer.'
             Value: !GetAtt 'WebAppLB.DNSName'
@@ -187,6 +198,3 @@ Resources:
         Listener:
             Description: A reference to a port 80 Listener
             Value: !Ref Listener
-        TemplateVersion:
-            Description: 'cloudonaut.io template version.'
-            Value: '__VERSION__'
