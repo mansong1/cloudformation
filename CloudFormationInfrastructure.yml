@@ -284,8 +284,8 @@ Resources:
         Type: AWS::ElasticLoadBalancingV2::LoadBalancer
         Properties:
             Subnets:
-                - Fn::ImportValue: !Sub "${EnvironmentName}-PUB1-SN"
-                - Fn::ImportValue: !Sub "${EnvironmentName}-PUB2-SN"
+                - Fn::ImportValue: !Sub PrivateSubnet1
+                - Fn::ImportValue: !Sub PrivateSubnet2
             SecurityGroups:
                 - Ref: LBSecGroup
     Listener:
