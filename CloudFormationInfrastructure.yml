@@ -320,9 +320,6 @@ Resources:
             HealthCheckProtocol: HTTP
             HealthCheckTimeoutSeconds: 8
             HealthyThresholdCount: 2
-            Matcher: 
-              Matcher
-            Name: String
             Port: 80
             Protocol: HTTP
             Tags: 
