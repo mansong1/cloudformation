@@ -1,31 +1,38 @@
 Description: >
     Martin Ansong / Udacity 2020
 Parameters:
+    
     KeyName:
         Description: Keyname used to ssh into bastion host
         Type: AWS::EC2::KeyPair::Keyname
         Default: udacity-2
+    
     MinAutoScalingGroupSize:
         Description: Minimum size for AutoScalingGroup. Default is 3
         Type: String
         Default: '1'
+    
     MaxAutoScalingGroupSize:
         Description: Maximum size for AutoScalingGroup. Default is 3
         Type: String
         Default: '2'
+    
     EnvironmentName:
         Description: An environment name that will be prefixed to resource names
         Type: String
         Default: UdacityProject
+    
     S3BucketUrl:
         NoEcho: true
         Type: String
         Default: s3://udacity-demo-1/udacity.zip
         Description: s3Bucket url used to download zipped file from
+    
     EbsVolumeSize:
         Type: String
         Default: '10'
         Description: Size of Ebs volume mount. Default is 10 (Gb)
+    
     InstanceTypeParameter:
         Type: String
         Default: t2.micro
@@ -34,6 +41,31 @@ Parameters:
             - t2.nano
             - t2.medium
         Description: Enter t2.micro, t2.nano, or t2.medium. Default is t2.micro
+
+    VpcCIDR: 
+        Description: Please enter the IP range (CIDR notation) for this VPC
+        Type: String
+        Default: 10.0.0.0/16
+
+    PublicSubnet1CIDR:
+        Description: Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone
+        Type: String
+        Default: 10.0.0.0/24
+
+    PublicSubnet2CIDR:
+        Description: Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone
+        Type: String
+        Default: 10.0.1.0/24
+
+    PrivateSubnet1CIDR:
+        Description: Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone
+        Type: String
+        Default: 10.0.2.0/24
+
+    PrivateSubnet2CIDR:
+        Description: Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone
+        Type: String
+        Default: 10.0.3.0/24
 Mappings:
     RegionMap:
         us-east-1:
@@ -45,6 +77,11 @@ Mappings:
         us-west-2:
             AMI: ami-0d1cd67c26f5fca19
 Resources:
+    VPC:
+        Type: AWS::EC2::VPC
+        Properties:
+            CidrBlock: 10.0.0.0/16
+            EnableDnsHostnames: true
     WebAppLaunchConfig:
         Type: AWS::AutoScaling::LaunchConfiguration 
         Properties:
@@ -216,22 +253,87 @@ Resources:
             - sts:AssumeRole
         Path: /
 Outputs:
+    
+    VPC: 
+        Description: A reference to the created VPC
+        Value: !Ref VPC
+        Export:
+          Name: !Sub ${EnvironmentName}-VPCID
+
+    VPCPublicRouteTable:
+        Description: Public Routing
+        Value: !Ref PublicRouteTable
+        Export:
+          Name: !Sub ${EnvironmentName}-PUB-RT
+
+    VPCPrivateRouteTable1:
+        Description: Private Routing AZ1
+        Value: !Ref PrivateRouteTable1
+        Export:
+          Name: !Sub ${EnvironmentName}-PRI1-RT
+
+    VPCPrivateRouteTable2:
+        Description: Private Routing AZ2
+        Value: !Ref PrivateRouteTable2
+        Export:
+          Name: !Sub ${EnvironmentName}-PRI2-RT
+
+    PublicSubnets:
+        Description: A list of the public subnets
+        Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]]
+        Export:
+          Name: !Sub ${EnvironmentName}-PUB-NETS
+
+    PrivateSubnets:
+        Description: A list of the private subnets
+        Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2 ]]
+        Export:
+          Name: !Sub ${EnvironmentName}-PRIV-NETS
+
+    PublicSubnet1:
+        Description: A reference to the public subnet in the 1st Availability Zone
+        Value: !Ref PublicSubnet1
+        Export:
+          Name: !Sub ${EnvironmentName}-PUB1-SN
+
+    PublicSubnet2: 
+        Description: A reference to the public subnet in the 2nd Availability Zone
+        Value: !Ref PublicSubnet2
+        Export:
+          Name: !Sub ${EnvironmentName}-PUB2-SN
+
+    PrivateSubnet1:
+        Description: A reference to the private subnet in the 1st Availability Zone
+        Value: !Ref PrivateSubnet1
+        Export:
+          Name: !Sub ${EnvironmentName}-PRI1-SN
+
+    PrivateSubnet2: 
+        Description: A reference to the private subnet in the 2nd Availability Zone
+        Value: !Ref PrivateSubnet2
+        Export:
+          Name: !Sub ${EnvironmentName}-PRI2-SN
+    
     StacksRegion:
         Description: 'Region where stack is located'
         Value: !Ref "AWS::Region"
+    
     StackName:
         Description: 'Stack name'
         Value: !Sub "AWS::StackName"
+    
     DNSName:
         Description: 'The DNS name for the ECS cluster/service load balancer.'
         Value: !GetAtt 'WebAppLB.DNSName'
         Export:
             Name: !Sub "${AWS::StackName}-DNSName"
+    
     LoadBalancerUrl:
         Description: The URL of the ALB
         Value: !Sub "http://${WebAppLB.DNSName}"
         Export:
             Name: !Sub "${AWS::StackName}-URL"
+
     Listener:
         Description: A reference to a port 80 Listener
         Value: !Ref Listener
