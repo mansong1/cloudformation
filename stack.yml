@@ -54,7 +54,7 @@ Resources:
                 - RegionMap
                 - !Ref 'AWS::Region'
                 - AMI
-            KeyName: !Ref Keyname
+            KeyName: !Ref KeyName
             SecurityGroups:
                 - Ref: WebServerSecGroup
             BlockDeviceMappings:
