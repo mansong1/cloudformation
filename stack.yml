@@ -1,6 +1,10 @@
 Description: >
     Martin Ansong / Udacity 2020
 Parameters:
+    KeyName:
+        Description: Keyname used to ssh into bastion host
+        Type: AWS::EC2::KeyPair::Keyname
+        Default: udacity-2
     MinAutoScalingGroupSize:
         Description: Minimum size for AutoScalingGroup. Default is 3
         Type: String
@@ -47,7 +51,7 @@ Resources:
             InstanceType:
                 Ref: InstanceTypeParameter
             ImageId: !FindInMap
-            KeyName: udacity-2
+            KeyName: !Ref Keyname
             SecurityGroups:
                 - Ref: WebServerSecGroup
             BlockDeviceMappings:
@@ -178,23 +182,23 @@ Resources:
             Tags:
                 - Key: Name
                   Value: !Ref EnvironmentName
-    Outputs:
-        StacksRegion:
-            Description: 'Region where stack is located'
-            value: !Ref "AWS::Region"
-        StackName:
-            Description: 'Stack name'
-            Value: !Sub "${AWS::StackName}"
-        DNSName:
-            Description: 'The DNS name for the ECS cluster/service load balancer.'
-            Value: !GetAtt 'WebAppLB.DNSName'
-            Export:
-              Name: !Sub "${AWS::StackName}-DNSName"
-        LoadBalancerUrl:
-            Description: The URL of the ALB
-            Value: !Sub 'http://${WebAppLB.DNSName}'
-            Export:
-                Name: !Sub "${AWS::StackName}-URL"
-        Listener:
-            Description: A reference to a port 80 Listener
-            Value: !Ref Listener
+Outputs:
+    StacksRegion:
+        Description: 'Region where stack is located'
+        value: !Ref "AWS::Region"
+    StackName:
+        Description: 'Stack name'
+        Value: !Sub "${AWS::StackName}"
+    DNSName:
+        Description: 'The DNS name for the ECS cluster/service load balancer.'
+        Value: !GetAtt 'WebAppLB.DNSName'
+        Export:
+            Name: !Sub "${AWS::StackName}-DNSName"
+    LoadBalancerUrl:
+        Description: The URL of the ALB
+        Value: !Sub 'http://${WebAppLB.DNSName}'
+        Export:
+            Name: !Sub "${AWS::StackName}-URL"
+    Listener:
+        Description: A reference to a port 80 Listener
+        Value: !Ref Listener
