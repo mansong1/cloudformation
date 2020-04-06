@@ -316,7 +316,6 @@ Resources:
             HealthCheckEnabled: true
             HealthCheckIntervalSeconds: 10
             HealthCheckPath: /
-            HealthCheckPort: String
             HealthCheckProtocol: HTTP
             HealthCheckTimeoutSeconds: 8
             HealthyThresholdCount: 2
@@ -385,7 +384,8 @@ Resources:
                 Statement:
                 - Effect: Allow
                 Action:
-                - s3:List*
+                - s3:ListBucket
+                - s3:GetObject
                 Resource: "*"
             Roles:
             - Ref: UdacityS3ReadOnlyEC2
