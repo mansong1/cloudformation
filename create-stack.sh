@@ -72,13 +72,14 @@ else
     if [ $status -ne 0 ] ; then
             if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
                 echo -e "\nFinished create/update - no updates to be performed"
-                exit 0
+                exit 0;
             elif [[ $update_output == *"ValidationError"* && $update_output == *"ROLLBACK_COMPLETE"* ]] ; then
                 echo -e "\nStack is in ROLLBACK_COMPLETE state so can not be updated. Deleting and Recreating stack"
                 delete_stack
                 create_stack
-                exit 0
+                exit 0;
             fi
+    fi
 fi
 
-echo "Finished updating/creating stack ${NAME}."
+echo "Finished updating/creating stack ${NAME}"
