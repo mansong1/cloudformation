@@ -24,15 +24,20 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] ; then
 fi
 
 NAME=$1
-FILE=$2
+TEMP_FILE=$2
 PARAM_FILE=$3
 REGION=$4
 DIR="$(PWD)"
 
+function validate_template() {
+   aws cloudformation validate-template \
+   --template-body file://${DIR}/${TEMP_FILE}
+}
+
 function create_stack () {
     aws cloudformation create-stack \
     --stack-name ${NAME} \
-    --template-body file://${DIR}/${FILE} \
+    --template-body file://${DIR}/${TEMP_FILE} \
     --parameters file://${DIR}/${PARAM_FILE} \
     --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" \
     --region ${REGION}
@@ -48,7 +53,7 @@ function wait_stack () {
 function update_stack () {
     aws cloudformation update-stack \
     --stack-name ${NAME} \
-    --template-body file://${DIR}/${FILE} \
+    --template-body file://${DIR}/${TEMP_FILE} \
     --parameters file://${DIR}/${PARAM_FILE} \
     --capabilities "CAPABILITY_IAM" "CAPABILITY_NAMED_IAM" \
     --region ${REGION}
@@ -59,6 +64,9 @@ function delete_stack () {
     aws cloudformation delete-stack \
     --stack-name ${NAME}
 }
+
+echo "Validating template file ${TEMP_FILE}..."
+validate_template
 
 echo "Checking if stack ${NAME} exists..."
 
