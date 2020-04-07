@@ -66,7 +66,16 @@ function delete_stack () {
 }
 
 echo "Validating template file ${TEMP_FILE}..."
-validate_template
+validation_output=`validate_template 2>&1`
+valid_status=$?
+
+if [ $valid_status -ne 0 ] ; then
+    if [[ $validation_output == *"ValidationError"* ]] ; then
+        echo -e "\nValidation Failed. Invalid yaml\n"
+        echo -e "${validation_output}\n"
+        exit 1;
+    fi
+fi
 
 echo "Checking if stack ${NAME} exists..."
 
