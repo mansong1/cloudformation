@@ -1,5 +1,44 @@
 [
 	{
+		"ParameterKey": "BastionAMIOS",
+		"ParameterValue": "Ubuntu-Server-16.04-LTS-HVM"
+	},	
+	{
+		"ParameterKey": "AppNodeAMIOS",
+		"ParameterValue": "Ubuntu-Server-18.04-LTS-HVM"
+	},	
+	{
+		"ParameterKey": "BastionHostName",
+		"ParameterValue": "LinuxBastion"
+	},	
+	{
+		"ParameterKey": "BastionBanner",
+		"ParameterValue": "https://aws-quickstart.s3.us-east-1.amazonaws.com/quickstart-linux-bastion/scripts/banner_message.txt"
+	},	
+	{
+		"ParameterKey": "BastionTenancy",
+		"ParameterValue": "default"
+	},	
+	{
+		"ParameterKey": "BastionInstanceType",
+		"ParameterValue": "t2.micro"
+	},	
+	{
+		"ParameterKey": "EnableBanner",
+		"ParameterValue": "true"
+	},
+	{
+		"ParameterKey": "EnableTCPForwarding",
+		"ParameterValue": "false"
+	},
+	{
+		"ParameterKey": "EnableX11Forwarding",
+		"ParameterValue": "false"
+	},	{
+		"ParameterKey": "NumBastionHosts",
+		"ParameterValue": "1"
+	},
+	{
 		"ParameterKey": "EnvironmentName",
 		"ParameterValue": "UdacityProject"
 	},
