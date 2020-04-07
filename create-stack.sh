@@ -69,6 +69,7 @@ if ! aws cloudformation describe-stacks --region ${REGION} --stack-name ${NAME} 
 else
     echo "Stack exists, attempting update..."
     update_result=`update_stack 2>&1`
+    status=$?
     if [ $status -ne 0 ] ; then
             if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
                 echo -e "\nFinished create/update - no updates to be performed"
@@ -82,4 +83,4 @@ else
     fi
 fi
 
-echo "Finished updating/creating stack ${NAME}"
+echo "Finished creating/updating stack ${NAME}"
