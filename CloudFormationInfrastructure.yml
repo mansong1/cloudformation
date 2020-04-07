@@ -3,8 +3,108 @@ Description: >
     This template creates and deploys the infrastructure and application for an Instagram-like 
     application from the ground up in a highly available configuration
 Parameters:
+
+    BastionAMIOS:
+        AllowedValues:
+            - Amazon-Linux2-HVM
+            - Amazon-Linux-HVM
+            - CentOS-7-HVM
+            - Ubuntu-Server-18.04-LTS-HVM
+            - Ubuntu-Server-16.04-LTS-HVM
+            - SUSE-SLES-15-HVM
+        Default: Ubuntu-Server-16.04-LTS-HVM
+        Description: The Linux distribution for the AMI to be used for the bastion instances.
+        Type: String
+
+    AppNodeAMIOS:
+        AllowedValues:
+            - Amazon-Linux2-HVM
+            - Amazon-Linux-HVM
+            - CentOS-7-HVM
+            - Ubuntu-Server-18.04-LTS-HVM
+            - Ubuntu-Server-16.04-LTS-HVM
+            - SUSE-SLES-15-HVM
+        Default: Ubuntu-Server-18.04-LTS-HVM
+        Description: The Linux distribution for the AMI to be used for the bastion instances.
+        Type: String
+
+    BastionHostName:
+        Default: 'LinuxBastion'
+        Description: The value used for the name tag of the bastion host
+        Type: String
+
+    BastionBanner:
+        Default: https://aws-quickstart.s3.us-east-1.amazonaws.com/quickstart-linux-bastion/scripts/banner_message.txt
+        Description: Banner text to display upon login.
+        Type: String
+
+    BastionTenancy:
+        Description: 'VPC tenancy to launch the bastion in. Options: ''dedicated'' or ''default'''
+        Type: String
+        Default: default
+        AllowedValues:
+            - dedicated
+            - default
+
+    BastionInstanceType:
+        AllowedValues:
+            - t2.nano
+            - t2.micro
+            - t2.small
+            - t2.medium
+        Default: t2.micro
+        Description: Amazon EC2 instance type for the bastion instances.
+        Type: String
+
+    EnableBanner:
+        AllowedValues:
+            - 'true'
+            - 'false'
+        Default: 'false'
+        Description: To include a banner to be displayed when connecting via SSH to the bastion, choose true.
+        Type: String
+
+    EnableTCPForwarding:
+        Type: String
+        Description: To enable TCP forwarding, choose true.
+        Default: 'false'
+        AllowedValues:
+            - 'true'
+            - 'false'
     
-    KeyName:
+    EnableX11Forwarding:
+        Type: String
+        Description: To enable X11 forwarding, choose true.
+        Default: 'false'
+        AllowedValues:
+        - 'true'
+        - 'false'
+    
+    NumBastionHosts:
+        AllowedValues:
+        - '1'
+        - '2'
+        - '3'
+        - '4'
+        Default: '1'
+        Description: The number of bastion hosts to create. The maximum number is four.
+        Type: String
+
+    LinuxAMINameMap:
+        Amazon-Linux2-HVM:
+            Code: AMZNLINUX2
+        Amazon-Linux-HVM:
+            Code: AMZNLINUXHVM
+        CentOS-7-HVM:
+            Code: CENTOS7HVM
+        Ubuntu-Server-18.04-LTS-HVM:
+            Code: US1804HVM
+        Ubuntu-Server-16.04-LTS-HVM:
+            Code: US1604HVM
+        SUSE-SLES-15-HVM:
+            Code: SLES15HVM
+
+    KeyPairName:
         Description: Keyname used to ssh
         Type: AWS::EC2::KeyPair::KeyName
     
@@ -64,13 +164,32 @@ Parameters:
 Mappings:
     RegionMap:
         us-east-1:
-            AMI: ami-07ebfd5b3428b6f4d
+            AMZNLINUX2: ami-0a887e401f7654935
+            AMZNLINUXHVM: ami-0e2ff28bfb72a4e45
+            CENTOS7HVM: ami-02eac2c0129f6376b
+            US1604HVM: ami-08bc77a2c7eb2b1da
+            SLES15HVM: ami-0b1764f3d7d2e2316
+            US1804HVM: ami-07ebfd5b3428b6f4d
         us-east-2:
-            AMI: ami-0fc20dd1da406780b
+            AMZNLINUX2: ami-0e38b48473ea57778
+            AMZNLINUXHVM: ami-0998bf58313ab53da
+            CENTOS7HVM: ami-0f2b4fc905b0bd1f1
+            US1604HVM: ami-08cec7c429219e339
+            SLES15HVM: ami-05ea824317ffc0c20
+            US1804HVM: ami-0fc20dd1da406780b
         us-west-1:
-            AMI: ami-03ba3948f6c37a4b0
+            US1804HVM: ami-03ba3948f6c37a4b0
+            AMZNLINUX2: ami-01c94064639c71719
+            AMZNLINUXHVM: ami-021bb9f371690f97a
+            CENTOS7HVM: ami-074e2d6769f445be5
+            US1604HVM: ami-094f0176b0d009d9f
+            SLES15HVM: ami-00e34a7624e5a7107
         us-west-2:
-            AMI: ami-0d1cd67c26f5fca19
+            AMZNLINUX2: ami-0e8c04af2729ff1bb
+            AMZNLINUXHVM: ami-079f731edfe27c29c
+            CENTOS7HVM: ami-01ed306a12b7d1c96
+            SLES15HVM: ami-0f1e3b3fb0fec0361
+            US1804HVM: ami-0d1cd67c26f5fca19
 Resources:
 
     VPC: 
@@ -242,8 +361,11 @@ Resources:
             ImageId: !FindInMap
                 - RegionMap
                 - !Ref 'AWS::Region'
-                - AMI
-            KeyName: !Ref KeyName
+                - !FindInMap 
+                    - LinuxAMINameMap
+                    - !Ref AppNodeAMIOS
+                    - Code
+            KeyName: !Ref KeyPairName
             SecurityGroups:
                 - Ref: WebServerSecGroup
             BlockDeviceMappings:

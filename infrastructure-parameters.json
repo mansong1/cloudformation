@@ -4,16 +4,16 @@
 		"ParameterValue": "UdacityProject"
 	},
 	{
-		"ParameterKey": "KeyName",
+		"ParameterKey": "KeyPairName",
 		"ParameterValue": "udacity-2"
 	},
 	{
 		"ParameterKey": "MinAutoScalingGroupSize",
-		"ParameterValue": "1"
+		"ParameterValue": "2"
 	},
 	{
 		"ParameterKey": "MaxAutoScalingGroupSize",
-		"ParameterValue": "2"
+		"ParameterValue": "3"
 	},
 	{
 		"ParameterKey": "S3BucketUrl",
