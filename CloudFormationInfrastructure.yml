@@ -559,7 +559,10 @@ Resources:
             MetricTransformations:
                 - MetricName: SSHCommandCount
                   MetricValue: '1'
-                  MetricNamespace: !Join ['/', [!Ref EnvironmentName, !Ref AWS::StackName ]]
+                  MetricNamespace: !Join
+                    - /
+                    - - AWSQuickStart
+                      - !Ref 'AWS::StackName'
 
     BastionHostRole:
         Type: 'AWS::IAM::Role'
