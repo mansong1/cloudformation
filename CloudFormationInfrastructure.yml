@@ -559,10 +559,7 @@ Resources:
             MetricTransformations:
                 - MetricName: SSHCommandCount
                   MetricValue: '1'
-                  MetricNamespace: !Join
-                    - /
-                    - - !Ref EnvironmentName
-                      - !Ref 'AWS::StackName'
+                  MetricNamespace: !Join ['/', [!Ref EnvironmentName, !Ref AWS::StackName ]]
 
     BastionHostRole:
         Type: 'AWS::IAM::Role'
@@ -707,14 +704,14 @@ Resources:
                         command: !Join
                             - ''
                             - - ./bastion_bootstrap.sh
-                            - ' --banner '
-                            - !Ref BastionBanner
-                            - ' --enable '
-                            - !Ref EnableBanner
-                            - ' --tcp-forwarding '
-                            - !Ref EnableTCPForwarding
-                            - ' --x11-forwarding '
-                            - !Ref EnableX11Forwarding
+                              - ' --banner '
+                              - !Ref BastionBanner
+                              - ' --enable '
+                              - !Ref EnableBanner
+                              - ' --tcp-forwarding '
+                              - !Ref EnableTCPForwarding
+                              - ' --x11-forwarding '
+                              - !Ref EnableX11Forwarding
         Properties:
             AssociatePublicIpAddress: true
             PlacementTenancy: !Ref BastionTenancy
