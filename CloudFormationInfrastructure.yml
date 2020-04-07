@@ -158,7 +158,7 @@ Conditions:
     4BastionCondition: !Equals [!Ref NumBastionHosts, '4']
 
 Mappings:
-    RegionMap:
+    AWSAMIRegionMap:
         us-east-1:
             AMZNLINUX2: ami-0a887e401f7654935
             AMZNLINUXHVM: ami-0e2ff28bfb72a4e45
@@ -369,7 +369,7 @@ Resources:
             InstanceType:
                 Ref: InstanceTypeParameter
             ImageId: !FindInMap
-                - RegionMap
+                - AWSAMIRegionMap
                 - !Ref 'AWS::Region'
                 - !FindInMap 
                     - LinuxAMINameMap
@@ -562,7 +562,7 @@ Resources:
                   MetricNamespace: !Join
                     - /
                     - - !Ref EnvironmentName
-                      - !Ref AWS::StackName
+                      - !Ref 'AWS::StackName'
 
     BastionHostRole:
         Type: 'AWS::IAM::Role'
@@ -589,7 +589,7 @@ Resources:
                 Statement:
                     - Action:
                         - 's3:GetObject'
-                      Resource: !Sub "arn:${AWS::Partition}:s3:::${QSS3BucketName}/${QSS3KeyPrefix}*"
+                      Resource: !Sub "arn:${AWS::Partition}:s3:::aws-quickstart/quickstart-linux-bastion/*"
                       Effect: Allow
                     - Action:
                         - 'logs:CreateLogStream'
@@ -663,6 +663,21 @@ Resources:
                 AutoScalingReplacingUpdate:
                     WillReplace: true
 
+    BastionSecurityGroup:
+        Type: 'AWS::EC2::SecurityGroup'
+        Properties:
+            GroupDescription: Enables SSH Access to Bastion Hosts
+            VpcId: !Ref VPC
+            SecurityGroupIngress:
+                - IpProtocol: tcp
+                  FromPort: 22
+                  ToPort: 22
+                  CidrIp: 0.0.0.0/0
+                - IpProtocol: icmp
+                  FromPort: -1
+                  ToPort: -1
+                  CidrIp: 0.0.0.0/0
+
     BastionLaunchConfiguration:
         Type: 'AWS::AutoScaling::LaunchConfiguration'
         Metadata:
@@ -671,17 +686,13 @@ Resources:
                     type: S3
                     roleName: 
                         - !Ref BastionHostRole
-                    buckets:
-                        - !Ref QSS3BucketName
+                    buckets: 'aws-quickstart'
             'AWS::CloudFormation::Init':
                 config:
                     files:
                         /tmp/bastion_bootstrap.sh:
-                            source: !If
-                                - UseAlternativeInitialization
-                                - !Ref AlternativeInitializationScript
-                                - !Sub
-                                - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}scripts/bastion_bootstrap.sh
+                            source: 
+                                - !Sub https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
                                 - S3Bucket:
                                     - !Sub '${EnvironmentName}-${AWS::Region}'
                                   S3Region:
@@ -709,10 +720,7 @@ Resources:
             PlacementTenancy: !Ref BastionTenancy
             KeyName: !Ref KeyPairName
             IamInstanceProfile: !Ref BastionHostProfile
-            ImageId: !If
-                - UseOSImageOverride
-                - !Ref OSImageOverride
-                - !FindInMap
+            ImageId: !FindInMap
                 - AWSAMIRegionMap
                 - !Ref 'AWS::Region'
                 - !FindInMap
@@ -730,70 +738,53 @@ Resources:
                     Encrypted: true
                     DeleteOnTermination: true
             UserData:
-                Fn::Base64: !Sub
-                - |
-                    #!/bin/bash
-                    set -x
-                    for e in $(echo "${EnvironmentVariables}" | tr ',' ' '); do
-                    export $e
-                    done
-                    export PATH=$PATH:/usr/local/bin
-                    #cfn signaling functions
-                    yum install git -y || apt-get install -y git || zypper -n install git
+                Fn::Base64:
+                    Fn::Sub:
+                        -  |
+                            #!/bin/bash
+                            set -x
+                            for e in $(echo "${EnvironmentVariables}" | tr ',' ' '); do
+                            export $e
+                            done
+                            export PATH=$PATH:/usr/local/bin
+                            #cfn signaling functions
+                            yum install git -y || apt-get install -y git || zypper -n install git
 
-                    function cfn_fail
-                    {
-                    cfn-signal -e 1 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
-                    exit 1
-                    }
+                            function cfn_fail
+                            {
+                            cfn-signal -e 1 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
+                            exit 1
+                            }
 
-                    function cfn_success
-                    {
-                    cfn-signal -e 0 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
-                    exit 0
-                    }
+                            function cfn_success
+                            {
+                            cfn-signal -e 0 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
+                            exit 0
+                            }
 
-                    until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git ; do echo "Retrying"; done
-                    cd /quickstart-linux-utilities;
-                    source quickstart-cfn-tools.source;
-                    qs_update-os || qs_err;
-                    #qs_bootstrap_pip || qs_err " pip bootstrap failed ";
-                    qs_aws-cfn-bootstrap || qs_err " cfn bootstrap failed ";
+                            until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git ; do echo "Retrying"; done
+                            cd /quickstart-linux-utilities;
+                            source quickstart-cfn-tools.source;
+                            qs_update-os || qs_err;
+                            #qs_bootstrap_pip || qs_err " pip bootstrap failed ";
+                            qs_aws-cfn-bootstrap || qs_err " cfn bootstrap failed ";
 
-                    EIP_LIST="${EIP1},${EIP2},${EIP3},${EIP4}"
-                    CLOUDWATCHGROUP=${BastionMainLogGroup}
-                    cfn-init -v --stack '${AWS::StackName}' --resource BastionLaunchConfiguration --region ${AWS::Region} || cfn_fail
-                    [ $(qs_status) == 0 ] && cfn_success || cfn_fail 
-                - EIP2:
-                    !If
-                    - 2BastionCondition
-                    - !Ref EIP2
-                    - 'Null'
-                  EIP3:
-                    !If
-                    - 3BastionCondition
-                    - !Ref EIP3
-                    - 'Null'
-                  EIP4:
-                    !If
-                    - 4BastionCondition
-                    - !Ref EIP4
-                    - 'Null'
-
-    BastionSecurityGroup:
-        Type: 'AWS::EC2::SecurityGroup'
-        Properties:
-            GroupDescription: Enables SSH Access to Bastion Hosts
-            VpcId: !Ref VPC
-            SecurityGroupIngress:
-                - IpProtocol: tcp
-                  FromPort: 22
-                  ToPort: 22
-                  CidrIp: !Ref 0.0.0.0/0
-                - IpProtocol: icmp
-                  FromPort: -1
-                  ToPort: -1
-                  CidrIp: !Ref 0.0.0.0/0
+                            EIP_LIST="${EIP1},${EIP2},${EIP3},${EIP4}"
+                            CLOUDWATCHGROUP=${BastionMainLogGroup}
+                            cfn-init -v --stack '${AWS::StackName}' --resource BastionLaunchConfiguration --region ${AWS::Region} || cfn_fail
+                            [ $(qs_status) == 0 ] && cfn_success || cfn_fail 
+                        - EIP2: !If
+                            - 2BastionCondition
+                            - !Ref EIP2
+                            - 'Null'
+                          EIP3: !If
+                            - 3BastionCondition
+                            - !Ref EIP3
+                            - 'Null'
+                          EIP4: !If
+                            - 4BastionCondition
+                            - !Ref EIP4
+                            - 'Null'
 
 Outputs:
 
