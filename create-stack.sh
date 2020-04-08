@@ -43,9 +43,14 @@ function create_stack () {
     --region ${REGION}
 }
 
-function wait_stack () {
-    echo "Waiting for stack to be created..."
+function wait_create_stack () {
     aws cloudformation wait stack-create-complete \
+    --region ${REGION} \
+    --stack-name ${NAME}
+}
+
+function wait_delete_stack () {
+    aws cloudformation wait stack-delete-complete \
     --region ${REGION} \
     --stack-name ${NAME}
 }
@@ -82,10 +87,11 @@ echo "Checking if stack ${NAME} exists..."
 if ! aws cloudformation describe-stacks --region ${REGION} --stack-name ${NAME} ; then
     echo "Stack does not exist.., Creating stack ${NAME}..."
     create_stack
-    wait_stack
+    echo "Waiting for stack to be created..."
+    `wait_create_stack > /dev/null 2&1 &`
 else
-    echo "Stack exists, attempting update..."
-    update_result=`update_stack 2>&1`
+    echo "Stack exists, attempting update/re-create..."
+    update_output=`update_stack 2>&1`
     status=$?
     if [ $status -ne 0 ] ; then
             if [[ $update_output == *"ValidationError"* && $update_output == *"No updates"* ]] ; then
@@ -94,6 +100,8 @@ else
             elif [[ $update_output == *"ValidationError"* && $update_output == *"ROLLBACK_COMPLETE"* ]] ; then
                 echo -e "\nStack is in ROLLBACK_COMPLETE state so can not be updated. Deleting and Recreating stack"
                 delete_stack
+                echo "Waiting for stack to be deleted and re-created..."
+                wait_delete_stack
                 create_stack
                 exit 0;
             fi
