@@ -90,6 +90,16 @@ Parameters:
         Description: The number of bastion hosts to create. The maximum number is four.
         Type: String
 
+    RootVolumeSize:
+        Description: The size in GB for the root EBS volume.
+        Type: Number
+        Default: '10'
+
+    EnvironmentVariables:
+        Description: A comma-separated list of environment variables for use in bootstrapping. Variables must be in the format KEY=VALUE. VALUE cannot contain commas.
+        Type: String
+        Default: ''
+
     KeyPairName:
         Description: Keyname used to ssh
         Type: AWS::EC2::KeyPair::KeyName
@@ -694,7 +704,7 @@ Resources:
                             source: 
                                 - !Sub https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
                                 - S3Bucket:
-                                    - !Sub '${EnvironmentName}-${AWS::Region}'
+                                    - !Sub 'aws-quickstart--${AWS::Region}'
                                   S3Region:
                                     - !Ref 'AWS::Region'
                             mode: '000550'

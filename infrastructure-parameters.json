@@ -39,6 +39,10 @@
 		"ParameterValue": "2"
 	},
 	{
+		"ParameterKey": "RootVolumeSize",
+		"ParameterValue": "10"
+	},
+	{
 		"ParameterKey": "EnvironmentName",
 		"ParameterValue": "UdacityProject"
 	},
