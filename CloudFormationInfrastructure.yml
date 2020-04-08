@@ -484,25 +484,34 @@ Resources:
             Tags:
                 - Key: Name
                   Value: !Ref EnvironmentName
-    WebAppCPULowAlarm:
+
+    ScaleUpPolicy:
+        Type: AWS::AutoScaling::ScalingPolicy
+        Properties:
+            AdjustmentType: ChangeInCapacity
+            AutoScalingGroupName: !Ref WebServerSecGroup
+            Cooldown: '1'
+            ScalingAdjustment: '1'
+
+    WebAppCPUHighAlarm:
         Type: 'AWS::CloudWatch::Alarm'
         Properties:
-            AlarmName: 'WebAppCPUUsageLow'
-            AlarmDescription: 'CPU usage is less than 25% for 5 minutes'
+            AlarmName: 'WebAppCPUUsageHigh'
+            AlarmDescription: 'CPU usage is too high'
             MetricName: 'CPUUtilization'
             Namespace: 'AWS/EC2'
             Statistic: 'Average'
             Period: '300'
             EvaluationPeriods: '1'
-            Threshold: '25'
+            Threshold: '10'
             ComparisonOperator: 'GreaterThanThreshold'
             AlarmActions:
-                - Ref: 'WebAppScaleDown'
+                - Ref: 'ScaleUpPolicy'
             Dimensions:
                 - Name: 'AutoScalingGroupName'
                   Value: 
                     - !Ref WebServerSecGroup
-    
+
     LBSecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
@@ -702,11 +711,7 @@ Resources:
                     files:
                         /tmp/bastion_bootstrap.sh:
                             source: 
-                                - !Sub https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
-                                - S3Bucket:
-                                    - !Sub 'aws-quickstart--${AWS::Region}'
-                                  S3Region:
-                                    - !Ref 'AWS::Region'
+                                - !Sub https://aws-quickstart--${AWS::Region}.s3.${AWS::Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
                             mode: '000550'
                             owner: root
                             group: root
