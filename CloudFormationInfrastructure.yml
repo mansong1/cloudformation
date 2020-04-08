@@ -196,6 +196,7 @@ Mappings:
             CENTOS7HVM: ami-01ed306a12b7d1c96
             SLES15HVM: ami-0f1e3b3fb0fec0361
             US1804HVM: ami-0d1cd67c26f5fca19
+            US1604HVM: ami-02d0ea44ae3fe9561
     LinuxAMINameMap:
         Amazon-Linux2-HVM:
             Code: AMZNLINUX2
@@ -588,17 +589,16 @@ Resources:
         Properties:
             Path: /
             AssumeRolePolicyDocument:
+                Version: '2012-10-17'
                 Statement:
-                    - Action:
-                        - 'sts:AssumeRole'
-                Principal:
-                    Service:
+                    - Effect: Allow
+                      Principle:
+                        Service:
                         - ec2.amazonaws.com
-                    Effect: Allow
-                Version: 2012-10-17
-            ManagedPolicyArns:
-                - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
-    
+                      Action:
+                        - 'sts:AssumeRole'
+            ManagedPolicyArns: !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonEC2RoleforSSM'
+
     BastionHostPolicy:
         Type: 'AWS::IAM::Policy'
         Properties:
