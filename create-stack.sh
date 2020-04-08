@@ -102,7 +102,7 @@ else
                 delete_stack
                 echo "Waiting for stack ${NAME} to be deleted and re-created..."
                 wait_delete_stack
-                echo "Stack ${NAME}" deleted. Recreating..."
+                echo "Stack ${NAME} deleted. Recreating..."
                 create_stack
                 exit 0;
             fi
