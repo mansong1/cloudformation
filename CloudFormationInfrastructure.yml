@@ -490,7 +490,7 @@ Resources:
         Type: AWS::AutoScaling::ScalingPolicy
         Properties:
             AdjustmentType: ChangeInCapacity
-            AutoScalingGroupName: !Ref WebServerSecGroup
+            AutoScalingGroupName: !Ref WebAppGroup
             Cooldown: '1'
             ScalingAdjustment: '1'
 
@@ -504,14 +504,14 @@ Resources:
             Statistic: 'Average'
             Period: '300'
             EvaluationPeriods: '1'
-            Threshold: '10'
+            Threshold: '80'
             ComparisonOperator: 'GreaterThanThreshold'
             AlarmActions:
                 - Ref: 'ScaleUpPolicy'
             Dimensions:
                 - Name: 'AutoScalingGroupName'
                   Value: 
-                    - !Ref WebServerSecGroup
+                    - !Ref WebAppGroup
 
     LBSecGroup:
         Type: AWS::EC2::SecurityGroup
