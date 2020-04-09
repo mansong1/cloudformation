@@ -402,10 +402,10 @@ Resources:
                         apt-get install unzip awscli -y
                         apt-get install apache2 -y
                         systemctl start apache2.service
-                        cd /var/www/html
-                        rm index.html
-                        aws s3 cp ${s3Bucket} .
+                        rm /var/www/html/index.html
+                        aws s3 cp ${s3Bucket} /var/www/html
                         unzip -o udacity.zip
+                        systemctl restart apache2.service
                     -  s3Bucket: !Ref S3BucketUrl
 
     WebAppGroup:
@@ -471,13 +471,17 @@ Resources:
     WebServerSecGroup:
         Type: AWS::EC2::SecurityGroup
         Properties:
-            GroupDescription: Allow http to our hosts and SSH from local only
+            GroupDescription: Allow http to our hosts and SSH from bastion hosts
             VpcId: !Ref VPC
             SecurityGroupIngress:
             - IpProtocol: tcp
               FromPort: 80
               ToPort: 80
               CidrIp: 0.0.0.0/0
+            - IpProtocol: tcp
+              FromPort: 22
+              ToPort: 22
+              SourceSecurityGroupId: !GetAtt BastionSecurityGroup.GroupId
             SecurityGroupEgress:
             - IpProtocol: tcp
               FromPort: 0
@@ -540,7 +544,7 @@ Resources:
                 Statement:
                 - Effect: Allow
                   Action:
-                  - s3:*
+                  - 's3:*'
                   Resource: "*"
             Roles:
             - !Ref UdacityS3ReadOnlyEC2
@@ -557,7 +561,7 @@ Resources:
                     - ec2.amazonaws.com
                   Action:
                   - sts:AssumeRole
-            Path: "/"
+            Path: /
     
     ProfileWithRolesForOurApp:
         DependsOn: UdacityS3ReadOnlyPolicy
@@ -700,25 +704,13 @@ Resources:
     BastionLaunchConfiguration:
         Type: 'AWS::AutoScaling::LaunchConfiguration'
         Metadata:
-            'AWS::CloudFormation::Authentication':
-                S3AccessCreds:
-                    type: S3
-                    roleName: 
-                        - !Ref BastionHostRole
-                    buckets: 'aws-quickstart'
             'AWS::CloudFormation::Init':
                 config:
-                    files:
-                        /tmp/bastion_bootstrap.sh:
-                            source: 
-                                - !Sub https://aws-quickstart.s3.us-west-2.amazonaws.com/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
-                            mode: '000550'
-                            owner: root
-                            group: root
-                            authentication: S3AccessCreds
+                    sources:
+                        /tmp/bootstrap/: https://github.com/aws-quickstart/quickstart-linux-bastion/tarball/master
                 commands:
                     b-bootstrap:
-                        cwd: '/tmp/'
+                        cwd: '/tmp/bootstrap/'
                         command: !Join
                             - ''
                             - - ./bastion_bootstrap.sh

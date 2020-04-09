@@ -36,7 +36,7 @@
 		"ParameterValue": "false"
 	},	{
 		"ParameterKey": "NumBastionHosts",
-		"ParameterValue": "2"
+		"ParameterValue": "1"
 	},
 	{
 		"ParameterKey": "RootVolumeSize",
