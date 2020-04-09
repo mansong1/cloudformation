@@ -191,10 +191,10 @@ Mappings:
             US1604HVM: ami-094f0176b0d009d9f
             SLES15HVM: ami-00e34a7624e5a7107
         us-west-2:
-            AMZNLINUX2: ami-0e8c04af2729ff1bb
-            AMZNLINUXHVM: ami-079f731edfe27c29c
+            AMZNLINUX2: ami-0d6621c01e8c2de2c
+            AMZNLINUXHVM: ami-01f08ef3e76b957e5
             CENTOS7HVM: ami-01ed306a12b7d1c96
-            SLES15HVM: ami-0f1e3b3fb0fec0361
+            SLES15HVM:  ami-0fde69c9f9f78ae47
             US1804HVM: ami-0d1cd67c26f5fca19
             US1604HVM: ami-02d0ea44ae3fe9561
     LinuxAMINameMap:
@@ -403,6 +403,7 @@ Resources:
                         apt-get install apache2 -y
                         systemctl start apache2.service
                         cd /var/www/html
+                        rm index.html
                         aws s3 cp ${s3Bucket} .
                         unzip -o udacity.zip
                     -  s3Bucket: !Ref S3BucketUrl
@@ -585,7 +586,7 @@ Resources:
     BastionHostRole:
         Type: 'AWS::IAM::Role'
         Properties:
-            Path: "/"
+            Path: /
             AssumeRolePolicyDocument:
                 Version: '2012-10-17'
                 Statement:
@@ -710,7 +711,7 @@ Resources:
                     files:
                         /tmp/bastion_bootstrap.sh:
                             source: 
-                                - !Sub https://aws-quickstart-${AWS::Region}.s3.${AWS::Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
+                                - !Sub https://aws-quickstart.s3.us-west-2.amazonaws.com/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
                             mode: '000550'
                             owner: root
                             group: root
@@ -758,22 +759,23 @@ Resources:
                             #!/bin/bash
                             set -x
                             for e in $(echo "${EnvironmentVariables}" | tr ',' ' '); do
-                            export $e
+                                export $e
                             done
                             export PATH=$PATH:/usr/local/bin
+
                             #cfn signaling functions
                             yum install git -y || apt-get install -y git || zypper -n install git
 
                             function cfn_fail
                             {
-                            cfn-signal -e 1 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
-                            exit 1
+                                cfn-signal -e 1 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
+                                exit 1
                             }
 
                             function cfn_success
                             {
-                            cfn-signal -e 0 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
-                            exit 0
+                                cfn-signal -e 0 --stack ${AWS::StackName} --region ${AWS::Region} --resource BastionAutoScalingGroup
+                                exit 0
                             }
 
                             until git clone https://github.com/aws-quickstart/quickstart-linux-utilities.git ; do echo "Retrying"; done

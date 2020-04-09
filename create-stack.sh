@@ -29,7 +29,7 @@ PARAM_FILE=$3
 REGION=$4
 DIR="$(PWD)"
 
-##################################### Functions Definitions
+##################################### Functions Definitions #####################################
 function validate_template() {
    aws cloudformation validate-template \
    --template-body file://${DIR}/${TEMP_FILE}
@@ -89,7 +89,7 @@ if ! aws cloudformation describe-stacks --region ${REGION} --stack-name ${NAME} 
     echo "Stack does not exist.., Creating stack ${NAME}..."
     create_stack
     echo "Waiting for stack to be created..."
-    `wait_create_stack 2>&1`
+    wait_create_stack
 else
     echo "Stack exists, attempting update/re-create..."
     update_output=`update_stack 2>&1`
