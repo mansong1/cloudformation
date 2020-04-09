@@ -546,7 +546,8 @@ Resources:
                 Statement:
                 - Effect: Allow
                   Action:
-                  - s3:List*
+                  - 's3:List*'
+                  - 's3:GetObject'
                   Resource: "*"
             Roles:
             - !Ref UdacityS3ReadOnlyEC2
