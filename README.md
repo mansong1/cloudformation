@@ -30,3 +30,8 @@ The `UseKeychain yes` is the *key* part, which tells SSH to look in your keychai
 
 #### SSH into your Instance
 `ssh -A <user>@<bastionhost>`
+
+Below is the infrastructure diagram that visualises what this cloudformation script deploys:
+
+
+![diagram](./architecture.jpeg)
