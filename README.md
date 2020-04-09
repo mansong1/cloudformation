@@ -1,6 +1,15 @@
 # Udactiy Cloud DevOps ND - Project-2 - HA web app using CloudFormation
 
+This is a project for the [Udacity Devops Engineer Nanodegree](https://eu.udacity.com/course/cloud-dev-ops-nanodegree--nd9991) program.
+
+The task is to deploy a high availability static website. The website should be hosted on servers within
+private subnets. All trafic to the servers should be routed through NAT gateways located in public subnets.
+For high availability there shouldn't be any single point of failure and we should leverage auto scaling
+as well as security best practices.
+
 ### Creating the stack 
+
+To deploy the cloudformation stack, there's a helper script included in the repository. See below:
 
 `./create-stack.sh **stack_name** **template_file** **parameters_file** **region** [aws-cli-opts]`
 
@@ -8,7 +17,10 @@ e.g.
 
 `./create-stack.sh udacitystack cfInfrastructure.yml infrastructure-parameters.json us-west-2`
 
-**N.B.** AMIs are Ubuntu 18.04 LTS
+Below is the infrastructure diagram that visualises what this cloudformation script deploys:
+
+
+![diagram](./architecture.jpeg)
 
 ### SSH Forwarding
 
@@ -30,8 +42,3 @@ The `UseKeychain yes` is the *key* part, which tells SSH to look in your keychai
 
 #### SSH into your Instance
 `ssh -A <user>@<bastionhost>`
-
-Below is the infrastructure diagram that visualises what this cloudformation script deploys:
-
-
-![diagram](./architecture.jpeg)
