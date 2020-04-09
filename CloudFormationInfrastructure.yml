@@ -379,6 +379,7 @@ Resources:
         Properties:
             InstanceType:
                 Ref: InstanceTypeParameter
+            IamInstanceProfile: !Ref ProfileWithRolesForOurApp
             ImageId: !FindInMap
                 - AWSAMIRegionMap
                 - !Ref 'AWS::Region'
@@ -545,7 +546,7 @@ Resources:
                 Statement:
                 - Effect: Allow
                   Action:
-                  - 's3:*'
+                  - s3:List*
                   Resource: "*"
             Roles:
             - !Ref UdacityS3ReadOnlyEC2
