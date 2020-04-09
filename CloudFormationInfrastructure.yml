@@ -244,7 +244,7 @@ Resources:
             MapPublicIpOnLaunch: true
             Tags: 
                 - Key: Name 
-                  Value: !Sub ${EnvironmentName} Public Subnet (AZ1)
+                  Value: !Sub EnvironmentName} Public Subnet (AZ1)
 
     PublicSubnet2: 
         Type: AWS::EC2::Subnet
@@ -358,7 +358,7 @@ Resources:
         Properties: 
             VpcId: !Ref VPC
             Tags: 
-                - Key: Name 
+                - Key: Name
                   Value: !Sub ${EnvironmentName} Private Routes (AZ2)
 
     DefaultPrivateRoute2:
@@ -495,23 +495,21 @@ Resources:
             ScalingAdjustment: '1'
 
     WebAppCPUHighAlarm:
-        Type: 'AWS::CloudWatch::Alarm'
+        Type: AWS::CloudWatch::Alarm
         Properties:
             AlarmName: 'WebAppCPUUsageHigh'
             AlarmDescription: 'CPU usage is too high'
             MetricName: 'CPUUtilization'
             Namespace: 'AWS/EC2'
             Statistic: 'Average'
-            Period: '300'
-            EvaluationPeriods: '1'
+            Period: 300
+            EvaluationPeriods: 1
             Threshold: '80'
             ComparisonOperator: 'GreaterThanThreshold'
-            AlarmActions:
-                - Ref: 'ScaleUpPolicy'
+            AlarmActions: [ !Ref 'ScaleUpPolicy' ]
             Dimensions:
                 - Name: 'AutoScalingGroupName'
-                  Value: 
-                    - !Ref WebAppGroup
+                  Value: !Ref WebAppGroup
 
     LBSecGroup:
         Type: AWS::EC2::SecurityGroup
@@ -661,27 +659,24 @@ Resources:
         Type: 'AWS::AutoScaling::AutoScalingGroup'
         Properties:
             LaunchConfigurationName: !Ref BastionLaunchConfiguration
-            VPCZoneIdentifier:
-                - !Ref PublicSubnet1
-                - !Ref PublicSubnet2
-
+            VPCZoneIdentifier: [ !Ref PublicSubnet1, !Ref PublicSubnet2 ]
             MinSize: !Ref NumBastionHosts
             MaxSize: !Ref NumBastionHosts
             Cooldown: '300'
             DesiredCapacity: !Ref NumBastionHosts
             Tags:
                 - Key: Name
-            Value: !Ref BastionHostName
-            PropagateAtLaunch: true
+                  Value: !Ref BastionHostName
+                  PropagateAtLaunch: true
         CreationPolicy:
             ResourceSignal:
                 Count: !Ref NumBastionHosts
                 Timeout: PT30M
             AutoScalingCreationPolicy:
                 MinSuccessfulInstancesPercent: 100
-            UpdatePolicy:
-                AutoScalingReplacingUpdate:
-                    WillReplace: true
+        UpdatePolicy:
+            AutoScalingReplacingUpdate:
+                WillReplace: true
 
     BastionSecurityGroup:
         Type: 'AWS::EC2::SecurityGroup'
@@ -697,6 +692,9 @@ Resources:
                   FromPort: -1
                   ToPort: -1
                   CidrIp: 0.0.0.0/0
+            Tags:
+                - Key: Name
+                  Value: !Ref EnvironmentName
 
     BastionLaunchConfiguration:
         Type: 'AWS::AutoScaling::LaunchConfiguration'
@@ -712,7 +710,7 @@ Resources:
                     files:
                         /tmp/bastion_bootstrap.sh:
                             source: 
-                                - !Sub https://aws-quickstart--${AWS::Region}.s3.${AWS::Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
+                                - !Sub https://aws-quickstart-${AWS::Region}.s3.${AWS::Region}.${AWS::URLSuffix}/quickstart-linux-bastion/scripts/bastion_bootstrap.sh
                             mode: '000550'
                             owner: root
                             group: root

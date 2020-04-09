@@ -21,7 +21,7 @@
 	},	
 	{
 		"ParameterKey": "BastionInstanceType",
-		"ParameterValue": "t2.micro"
+		"ParameterValue": "t2.small"
 	},	
 	{
 		"ParameterKey": "EnableBanner",
@@ -68,7 +68,7 @@
 	},
 	{
 		"ParameterKey": "InstanceTypeParameter",
-		"ParameterValue": "t2.micro"
+		"ParameterValue": "t2.medium"
 	},
 	{
 		"ParameterKey": "VpcCIDR",
@@ -76,18 +76,18 @@
 	},
 	{
 		"ParameterKey": "PublicSubnet1CIDR",
-		"ParameterValue": "10.0.0.0/24"
+		"ParameterValue": "10.0.128.0/20"
 	},
 	{
 		"ParameterKey": "PublicSubnet2CIDR",
-		"ParameterValue": "10.0.1.0/24"
+		"ParameterValue": "10.0.144.0/20"
 	},
 	{
 		"ParameterKey": "PrivateSubnet1CIDR",
-		"ParameterValue": "10.0.2.0/24"
+		"ParameterValue": "10.0.0.0/19"
 	},
 	{
 		"ParameterKey": "PrivateSubnet2CIDR",
-		"ParameterValue": "10.0.3.0/24"
+		"ParameterValue": "10.0.32.0/19"
 	}
 ]
