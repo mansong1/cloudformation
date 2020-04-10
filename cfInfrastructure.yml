@@ -101,7 +101,7 @@ Parameters:
         Default: ''
 
     KeyPairName:
-        Description: Keyname used to ssh
+        Description: Keyname used to ssh into Bsstion Hosts
         Type: AWS::EC2::KeyPair::KeyName
     
     MinAutoScalingGroupSize:
