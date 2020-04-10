@@ -24,6 +24,16 @@ Below is the infrastructure diagram that visualises what this cloudformation scr
 
 ### SSH Forwarding
 
+In order to troubleshoot what might have gone wrong on the WebServers, you will have to enable SSH to these from 
+the Bastion hosts. Below is SecurityIngressRule required for the WebServerSecurityGroup:
+
+```
+            - IpProtocol: tcp
+              FromPort: 22
+              ToPort: 22
+              SourceSecurityGroupId: !GetAtt BastionSecurityGroup.GroupId
+```
+
 To enable ssh agent forwarding you need to add your SSH private key to Keychain so it's automatically available
 to ssh.
 
