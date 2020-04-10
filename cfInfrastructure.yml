@@ -387,7 +387,6 @@ Resources:
                     - LinuxAMINameMap
                     - !Ref AppNodeAMIOS
                     - Code
-            KeyName: !Ref KeyPairName
             SecurityGroups:
                 - Ref: WebServerSecGroup
             BlockDeviceMappings:
@@ -480,10 +479,6 @@ Resources:
               FromPort: 80
               ToPort: 80
               CidrIp: 0.0.0.0/0
-            - IpProtocol: tcp
-              FromPort: 22
-              ToPort: 22
-              SourceSecurityGroupId: !GetAtt BastionSecurityGroup.GroupId
             SecurityGroupEgress:
             - IpProtocol: tcp
               FromPort: 0
