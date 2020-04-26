@@ -25,7 +25,7 @@ Parameters:
             - Ubuntu-Server-16.04-LTS-HVM
             - SUSE-SLES-15-HVM
         Default: Ubuntu-Server-18.04-LTS-HVM
-        Description: The Linux distribution for the AMI to be used for the bastion instances.
+        Description: The Linux distribution for the AMI to be used for the AppNode instances.
         Type: String
 
     BastionHostName:
@@ -127,7 +127,7 @@ Parameters:
         Type: String
         Description: Size of Ebs volume mount. Default is 10 (Gb)
         Default: 10
-    
+
     InstanceTypeParameter:
         Type: String
         AllowedValues:
